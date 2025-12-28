@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Planner</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Colonna Sinistra: Materie -->
+        <div class="column side-column">
+            <div class="title-with-btn">
+                <h2>Materie</h2>
+                <button id="add-materia-btn">+</button>
+            </div>
+            <div id="materie-list">
+                <!-- Qui andrà la lista delle materie -->
+            </div>
+        </div>
+
+        <!-- Colonna Centrale: Task (Più grande) -->
+        <div class="column center-column">
+            <div class="title-with-btn">
+                <h2>Task</h2>
+                <button id="add-task-btn">+</button>
+            </div>
+            
+            <div id="task-list">
+                <!-- Qui andranno i task -->
+            </div>
+        </div>
+
+        <!-- Colonna Destra: Calendario -->
+        <div class="column side-column">
+            <h2>Calendario</h2>
+            <div id="calendario">
+                <!-- Qui andrà il calendario -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Aggiungi</h2>
+            <div id="modal-body">
+                <p>Contenuto del modale...</p>
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
