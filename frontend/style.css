@@ -272,3 +272,50 @@ header h1 {
 #modal-body button:active {
     transform: scale(0.98);
 }
+
+/* Calendar Styles */
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f1f3f5;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #007bff;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+    line-height: 1;
+}
+
+.nav-btn:hover {
+    background-color: #e9ecef;
+}
+
+#current-day-display {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+#day-name {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+#day-number {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+}

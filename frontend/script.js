@@ -7,7 +7,9 @@ let modalTitle;
 let modalBody;
 let listaMaterie;
 let listaTask;
-let materiaSelezionata = {}
+let materiaSelezionata = {};
+let giornoCalendario = new Date();
+let allTask;
 //#endregion
 
 //#region Modal Logic
@@ -104,12 +106,12 @@ function getMaterie(){
     .catch(error => console.error('Errore:', error));
 }
 
-function getTask(id, colore){
+function getTask(){
     fetch("/getTask")
     .then(response => response.json())
     .then(data => {
-        materiaSelezionata = {id: id, colore: colore}
-        colonnaTask(data.filter(item => item.id_materia == id))
+        allTask = data;
+        taskGiornaliere(); // Aggiorna la vista giornaliera quando i dati sono pronti
     })
     .catch(error => console.error('Errore:', error));
 }
@@ -119,7 +121,7 @@ function insertMateria() {
     let coloreMateria = document.getElementById('materia-colore').value;
 
     // Creiamo l'oggetto con i dati da inviare
-    const datiDaInviare = {
+    const datiMateria = {
         materia: nomeMateria,
         colore: coloreMateria
     };
@@ -129,7 +131,7 @@ function insertMateria() {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(datiDaInviare) 
+        body: JSON.stringify(datiMateria) 
     })
     .then(response => response.json())
     .then(data => {
@@ -159,18 +161,36 @@ function insertTask(){
         pagine: parseInt(pagine)
     }
 
-    console.log(datiTask)
+    fetch("/insertTask", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(datiTask)
+
+    })
+    .then(response => response.json())
+    .then(data => {
+        getTask()
+    })
+    .catch(error => console.error('Errore:', error));
 }
 
 //#endregion
 
 //#region funzioni
 
+function clickMateria(id, colore){
+    materiaSelezionata = {id: id, colore: colore}
+    colonnaTask(allTask.filter(item => item.id_materia == id))
+}
+
+
 function colonnaMaterie(materie){
     let html = ``
     materie.forEach(item => {
         html += `
-            <div class="card" data-id="${item.id}" data-colore="${item.colore}" onclick="getTask(this.dataset.id, this.dataset.colore)">
+            <div class="card" data-id="${item.id}" data-colore="${item.colore}" onclick="clickMateria(this.dataset.id, this.dataset.colore)">
                 <div class="color-indicator" style="background-color: ${item.colore}"></div>
                 <p>${item.materia}</p>
             </div>
@@ -193,7 +213,68 @@ function colonnaTask(task){
     listaTask.innerHTML = html;
 }
 
+function giorniCalendario(i){
 
+    let calendario = document.getElementById("current-day-display")
+
+    if(i == 0){
+
+        let giornoSettimana = giornoCalendario.toLocaleString('it-IT', { weekday: 'long' });
+        let giornoMese = giornoCalendario.getDate() + " " + giornoCalendario.toLocaleString('it-IT', { month: 'long' })
+
+        calendario.innerHTML = `
+            <span id="day-name">${giornoSettimana}</span>
+            <span id="day-number">${giornoMese}</span>
+        `
+    }else{
+
+        giornoCalendario.setDate(giornoCalendario.getDate() + i)
+        let giornoSettimana = giornoCalendario.toLocaleString('it-IT', { weekday: 'long' });
+        let giornoMese = giornoCalendario.getDate() + " " + giornoCalendario.toLocaleString('it-IT', { month: 'long' })
+
+        calendario.innerHTML = `
+            <span id="day-name">${giornoSettimana}</span>
+            <span id="day-number">${giornoMese}</span>
+        `
+
+    }
+
+    taskGiornaliere()
+    
+}
+
+function taskGiornaliere(){
+    if (!allTask) return; // Evita errori se i dati non sono ancora caricati
+
+    let html = ``
+    // Normalizziamo il giorno del calendario a mezzanotte per il confronto
+    let checkDay = new Date(giornoCalendario);
+    checkDay.setHours(0, 0, 0, 0);
+
+    allTask.forEach(item => {
+        let start = new Date(item.data_inizio);
+        start.setHours(0, 0, 0, 0);
+        
+        let end = new Date(item.data_fine);
+        end.setHours(0, 0, 0, 0);
+
+        let diff = Math.round((end - start) / (1000 * 60 * 60 * 24))+1;
+
+        if(start <= checkDay && end >= checkDay){
+            html +=`
+                <div class="card">
+                    <p>${item.titolo} - pagine da completare: ${pagineGiornaliere(item.pagine, diff)}</p>
+                </div>
+            ` 
+        }
+    })
+    document.getElementById("task-giornaliere").innerHTML = html
+
+}
+
+function pagineGiornaliere(pagine, giorni){
+    return Math.ceil(pagine/giorni)
+}
 
 //#endregion
 
@@ -234,5 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     getMaterie()
+    getTask()
+    giorniCalendario(0)
 });
 //#endregion

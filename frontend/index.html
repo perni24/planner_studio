@@ -39,7 +39,17 @@
         <div class="column side-column">
             <h2>Calendario</h2>
             <div id="calendario">
-                <!-- Qui andrà il calendario -->
+                <div class="calendar-nav">
+                    <button id="prev-day" class="nav-btn" onclick="giorniCalendario(-1)">&lt;</button>
+                    <div id="current-day-display">
+                        <span id="day-name">Lunedì</span>
+                        <span id="day-number">29 Dicembre</span>
+                    </div>
+                    <button id="next-day" class="nav-btn" onclick="giorniCalendario(1)">&gt;</button>
+                </div>
+                <div id="task-giornaliere">
+
+                </div>
             </div>
         </div>
     </div>

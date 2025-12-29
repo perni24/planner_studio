@@ -81,6 +81,33 @@ def insertMateria():
 
     return jsonify({"messaggio": "Materia inserita!", "id_assegnato": nuovo_id}), 201
 
+@app.route('/insertTask', methods=['POST'])
+def insertTask():
+    nuovaTask = request.get_json()
+    nomeFile = 'task.json'
+
+    try:
+        with open(nomeFile, 'r', encoding='utf-8') as file:
+            tasks = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        tasks = []
+    
+    # --- LOGICA PER L'ID INCREMENTALE ---
+    if tasks:
+        nuovo_id = tasks[-1]['id'] + 1
+    else:
+        nuovo_id = 1
+    
+    nuovaTask['id'] = nuovo_id
+
+    tasks.append(nuovaTask)
+
+    with open(nomeFile, 'w', encoding='utf-8') as file:
+        json.dump(tasks, file, indent=4, ensure_ascii=False)
+
+    return jsonify({"messaggio": "Task inserita!", "id_assegnato": nuovo_id}), 201
+
+
 @app.route('/deleteMateria/<int:materiaId>', methods=['DELETE'])  
 def deleteMateria(materiaId):
     nomeFile = 'materie.json'
