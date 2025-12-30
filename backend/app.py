@@ -99,6 +99,7 @@ def insertTask():
         nuovo_id = 1
     
     nuovaTask['id'] = nuovo_id
+    nuovaTask['pagine_completate'] = 0
 
     tasks.append(nuovaTask)
 

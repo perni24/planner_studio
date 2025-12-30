@@ -10,6 +10,7 @@ let listaTask;
 let materiaSelezionata = {};
 let giornoCalendario = new Date();
 let allTask;
+let allMaterie;
 //#endregion
 
 //#region Modal Logic
@@ -101,6 +102,7 @@ function getMaterie(){
     fetch("/getMaterie")
     .then(response => response.json())
     .then(data => {
+        allMaterie = data;
         colonnaMaterie(data)
     })
     .catch(error => console.error('Errore:', error));
@@ -251,6 +253,9 @@ function taskGiornaliere(){
     let checkDay = new Date(giornoCalendario);
     checkDay.setHours(0, 0, 0, 0);
 
+    let today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     allTask.forEach(item => {
         let start = new Date(item.data_inizio);
         start.setHours(0, 0, 0, 0);
@@ -258,22 +263,43 @@ function taskGiornaliere(){
         let end = new Date(item.data_fine);
         end.setHours(0, 0, 0, 0);
 
-        let diff = Math.round((end - start) / (1000 * 60 * 60 * 24))+1;
+        let diff
 
-        if(start <= checkDay && end >= checkDay){
+        if (checkDay >= start && checkDay <= end && checkDay >= today){
+            diff = Math.round((end - checkDay) / (1000 * 60 * 60 * 24))+1;
+            let coloreTask = allMaterie.find(m => m.id === item.id_materia).colore;
+            
             html +=`
                 <div class="card">
-                    <p>${item.titolo} - pagine da completare: ${pagineGiornaliere(item.pagine, diff)}</p>
+                    <div class="color-indicator" style="background-color: ${coloreTask}"></div>
+                    <p>${item.titolo} - pagine da completare: ${pagineGiornaliere(item.pagine, diff, item.pagine_completate)[0]}</p>
                 </div>
             ` 
         }
+
     })
     document.getElementById("task-giornaliere").innerHTML = html
 
 }
 
-function pagineGiornaliere(pagine, giorni){
-    return Math.ceil(pagine/giorni)
+function pagineGiornaliere(pagine, giorni, pagine_completate){
+    let arrPagineGiorno = []
+    pagine = pagine - pagine_completate
+    if(pagine % giorni == 0){
+        for(let i = 0; i < giorni; i++){
+            arrPagineGiorno.push(pagine/giorni)
+        }
+    }else{
+       let resto = Math.round(pagine % giorni)
+       pagine = pagine - resto
+       for(let i = 0; i < giorni; i++){
+            arrPagineGiorno.push(i == 0 ? (pagine/giorni)+resto : pagine/giorni)
+        }    
+    }
+
+
+
+    return arrPagineGiorno
 }
 
 //#endregion

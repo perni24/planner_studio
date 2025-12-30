@@ -85,7 +85,7 @@ header h1 {
 }
 
 /* List Styles */
-#materie-list, #task-list {
+#materie-list, #task-list, #task-giornaliere {
     display: flex;
     flex-direction: column;
     gap: 12px;
