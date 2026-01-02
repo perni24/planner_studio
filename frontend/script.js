@@ -8,6 +8,7 @@ let modalBody;
 let listaMaterie;
 let listaTask;
 let materiaSelezionata = {};
+let taskSelezionata;
 let giornoCalendario = new Date();
 let allTask;
 let allMaterie;
@@ -18,7 +19,7 @@ function openModal(title) {
     if (modalTitle) modalTitle.textContent = title;
     if (modal) modal.style.display = 'block';
     
-    if (title.includes("Materia") && modalBody){
+    if (title.includes("Aggiungi Materia") && modalBody){
         modalBody.innerHTML = `
             <label for="materia-nome">Nome Materia</label>
             <input type="text" id="materia-nome" placeholder="es. Matematica" required autocomplete="off">
@@ -34,7 +35,7 @@ function openModal(title) {
                 closeModal();
             });
         }
-    } else {
+    } else if(title.includes("Aggiungi Task") && modalBody){
         modalBody.innerHTML = `
             <label for="task-materia">Materia</label>
             <select id="task-materia" required>
@@ -65,26 +66,104 @@ function openModal(title) {
             <button id="save-task-btn">Salva Task</button>
         `;
         
-        // Popola il selettore delle materie
-        fetch("/getMaterie")
-            .then(response => response.json())
-            .then(materie => {
-                const select = document.getElementById('task-materia');
-                materie.forEach(m => {
-                    const option = document.createElement('option');
-                    option.value = m.id;
-                    option.textContent = m.materia;
-                    select.appendChild(option);
-                });
-                if (materiaSelezionata && materiaSelezionata.id) {
-                    select.value = materiaSelezionata.id;
-                }
-            });
+        const select = document.getElementById('task-materia');
+        
+        allMaterie.forEach(materia => {
+            const option = document.createElement('option');
+            option.value = materia.id
+            option.textContent = materia.materia;
+            select.appendChild(option);
+        })
+        if (materiaSelezionata && materiaSelezionata.id) {
+            select.value = materiaSelezionata.id;
+        }
 
         let saveBtn = document.getElementById('save-task-btn');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => {
                 insertTask();
+                closeModal();
+            });
+        }
+    }else if(title.includes("Riepilogo Task") && modalBody){
+        let task = allTask.find(item => item.id == taskSelezionata)
+        modalBody.innerHTML = `
+            <label for="task-materia">Materia</label>
+            <select id="task-materia" required value=${task.id_materia}>
+                <option value="" disabled selected>Seleziona una materia</option>
+            </select>
+
+            <label for="task-nome">Titolo Task</label>
+            <input type="text" id="task-nome" placeholder="es. Verifica Funzioni" required autocomplete="off" value=${task.titolo}>
+
+            <label for="task-desc">Descrizione</label>
+            <textarea id="task-desc" placeholder="Dettagli dello studio...">${task.descrizione}</textarea>
+
+            <label for="task-pagine">Pagine</label>
+            <input type="number" id="task-pagine" placeholder="0" value=${task.pagine}>
+
+
+            <div class="input-group">
+                <div>
+                    <label for="task-inizio">Data Inizio</label>
+                    <input type="date" id="task-inizio" required value=${task.data_inizio}>
+                </div>
+                <div>
+                    <label for="task-fine">Data Fine</label>
+                    <input type="date" id="task-fine" required value=${task.data_fine}>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="update-task-btn">Aggiorna Task</button>
+                <button id="delete-task-btn" class="btn-danger">Cancella Task</button>
+            </div>
+        `;
+
+        const select = document.getElementById('task-materia');
+
+        allMaterie.forEach(materia => {
+            const option = document.createElement('option');
+            option.value = materia.id
+            option.textContent = materia.materia;
+            select.appendChild(option);
+        })
+        if (materiaSelezionata && materiaSelezionata.id) {
+            select.value = materiaSelezionata.id;
+        }
+
+        let updateBtn = document.getElementById('update-task-btn');
+        let deleteBtn = document.getElementById('delete-task-btn');
+        if (updateBtn) {
+            updateBtn.addEventListener('click', () => {
+                updateTask();
+                closeModal();
+            });
+        }
+        if (deleteBtn){
+            deleteBtn.addEventListener('click', () => {
+                deleteTask();
+                closeModal();
+            });
+        }
+    }
+    else if(title.includes("Pagine Completate") && modalBody){
+        modalBody.innerHTML = `
+            <p class="modal-subtitle">${allTask.find(item => item.id == taskSelezionata).titolo}</p>
+            <label for="pagine-completate">Pagine completate</label>
+            <input type="number" id="pagine-completate" required autocomplete="off" value=0>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="check-fine-task">
+                <label for="check-fine-task">Fine task giornaliera</label>
+            </div>
+            
+            <button id="save-pagine-completate">Salva</button>
+        `
+
+        let saveBtn = document.getElementById('save-pagine-completate');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                updatePagineCompletate();
                 closeModal();
             });
         }
@@ -113,7 +192,10 @@ function getTask(){
     .then(response => response.json())
     .then(data => {
         allTask = data;
-        taskGiornaliere(); // Aggiorna la vista giornaliera quando i dati sono pronti
+        taskGiornaliere();
+        if(materiaSelezionata){
+            colonnaTask(allTask.filter(item => item.id_materia == materiaSelezionata.id))
+        }
     })
     .catch(error => console.error('Errore:', error));
 }
@@ -178,6 +260,74 @@ function insertTask(){
     .catch(error => console.error('Errore:', error));
 }
 
+function updatePagineCompletate(){
+    let pagineCompletate = document.getElementById("pagine-completate")
+    let checkBox = document.getElementById("check-fine-task")
+
+    const pagine = {
+        pagine_completate : pagineCompletate.value,
+        fine_task_giornaliera: checkBox.checked == true ? new Date().toISOString().split('T')[0] : ""
+    }
+
+    fetch("/updatePagine/"+taskSelezionata, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(pagine)
+    })
+    .then(response => response.json())
+    .then(data => {
+        getTask()
+    })
+    .catch(error => console.error('Errore:', error));
+}
+
+function updateTask(){
+    
+    let idMateria = document.getElementById("task-materia").value
+    let titolo = document.getElementById("task-nome").value
+    let descrizione = document.getElementById("task-desc").value
+    let dataInizio = document.getElementById("task-inizio").value
+    let dataFine = document.getElementById("task-fine").value
+    let pagine = document.getElementById("task-pagine").value
+
+    const datiTask = {
+        id_materia: parseInt(idMateria),
+        titolo: titolo,
+        descrizione: descrizione,
+        data_inizio: dataInizio,
+        data_fine: dataFine,
+        pagine: parseInt(pagine)
+    }
+
+    fetch("/updateTask/"+taskSelezionata, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(datiTask)
+    })
+    .then(response => response.json())
+    .then(data => {
+        getTask()
+    })
+    .catch(error => console.error('Errore:', error));
+}
+
+function deleteTask(){
+
+    fetch("/deleteTask/"+taskSelezionata, {
+        method: "DELETE",
+    })
+    .then(response => response.json())
+    .then(data => {
+        getTask()
+    })
+    .catch(error => console.error('Errore:', error));
+
+}
+
 //#endregion
 
 //#region funzioni
@@ -185,6 +335,15 @@ function insertTask(){
 function clickMateria(id, colore){
     materiaSelezionata = {id: id, colore: colore}
     colonnaTask(allTask.filter(item => item.id_materia == id))
+}
+
+function clickTask(id, tipo){
+    taskSelezionata = id
+    if(tipo == 1){
+        openModal("Riepilogo Task")
+    }else{
+        openModal("Pagine Completate")
+    }
 }
 
 
@@ -205,10 +364,10 @@ function colonnaTask(task){
     let html = ``
     task.forEach(item => {
         html += `
-            <div class="card" data-id="${item.id}">
+            <div class="card" data-id="${item.id}" onclick="clickTask(${item.id},1)">
                 <div class="color-indicator" style="background-color: ${materiaSelezionata.colore}"></div>
                 <p>${item.titolo}</p>
-                <p>${item.data_inizio == undefined ? "" : item.data_inizio + " - "}${item.data_fine}</p>
+                <p>pagine: ${item.pagine_completate > 0 ? item.pagine-item.pagine_completate : item.pagine} - scadenza: ${item.data_fine}</p>
             </div>
         `
     });
@@ -263,14 +422,17 @@ function taskGiornaliere(){
         let end = new Date(item.data_fine);
         end.setHours(0, 0, 0, 0);
 
+        let fineTask = new Date(item.fine_task_giornaliera);
+        fineTask.setHours(0, 0, 0, 0);
+
         let diff
 
-        if (checkDay >= start && checkDay <= end && checkDay >= today){
+        if (checkDay >= start && checkDay <= end && checkDay >= today && checkDay.getTime() != fineTask.getTime()){
             diff = Math.round((end - checkDay) / (1000 * 60 * 60 * 24))+1;
             let coloreTask = allMaterie.find(m => m.id === item.id_materia).colore;
             
             html +=`
-                <div class="card">
+                <div class="card" onclick="clickTask(${item.id},2)">
                     <div class="color-indicator" style="background-color: ${coloreTask}"></div>
                     <p>${item.titolo} - pagine da completare: ${pagineGiornaliere(item.pagine, diff, item.pagine_completate)[0]}</p>
                 </div>
@@ -296,8 +458,6 @@ function pagineGiornaliere(pagine, giorni, pagine_completate){
             arrPagineGiorno.push(i == 0 ? (pagine/giorni)+resto : pagine/giorni)
         }    
     }
-
-
 
     return arrPagineGiorno
 }

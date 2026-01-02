@@ -319,3 +319,83 @@ header h1 {
     font-weight: 600;
     color: #212529;
 }
+
+/* Custom Checkbox and Modal Subtitle Styles */
+.modal-subtitle {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-top: -15px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #007bff;
+    border-radius: 6px;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.checkbox-container input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container input[type="checkbox"]:hover {
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+
+.checkbox-container label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+    margin-bottom: 0 !important; /* Override general label margin */
+}
+
+/* Modal Footer & Buttons */
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.modal-footer button {
+    flex: 1;
+    margin-top: 0 !important;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b !important;
+}
