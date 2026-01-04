@@ -179,6 +179,8 @@ def deleteMateria(materiaId):
             if m['id'] != materiaId:
                 nuove_materie.append(m)
 
+        deleteAllTask(materiaId)
+
         # Salvataggio la lista aggiornata
         with open(nomeFile, 'w', encoding='utf-8') as file:
             json.dump(nuove_materie, file, indent=4, ensure_ascii=False)
@@ -198,6 +200,25 @@ def deleteTask(materiaId):
         nuove_task = []
         for t in task:
             if t['id'] != materiaId:
+                nuove_task.append(t)
+
+        with open(nomeFile, 'w', encoding='utf-8') as file:
+            json.dump(nuove_task, file, indent=4, ensure_ascii=False)
+            
+        return jsonify({"messaggio": "Task eliminata con successo"}), 200
+
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify({"errore": "File non trovato"}), 500
+
+def deleteAllTask(id_materia):
+    nomeFile = 'task.json'
+    try:
+        with open(nomeFile, 'r', encoding='utf-8') as file:
+            task= json.load(file)
+        
+        nuove_task = []
+        for t in task:
+            if t['id_materia'] != id_materia:
                 nuove_task.append(t)
 
         with open(nomeFile, 'w', encoding='utf-8') as file:

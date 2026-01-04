@@ -167,6 +167,18 @@ function openModal(title) {
                 closeModal();
             });
         }
+    }else if(title.includes("Conferma eliminazione") && modalBody){
+        modalBody.innerHTML = `
+                <button id="delete-materia-btn" class="btn-danger">Si</button>
+        `
+
+        let deleteBtn = document.getElementById('delete-materia-btn');
+        if(deleteBtn){
+            deleteBtn.addEventListener('click', () => {
+                deleteMateria()
+                closeModal();
+            })
+        }
     }
 }
 
@@ -328,6 +340,19 @@ function deleteTask(){
 
 }
 
+function deleteMateria(){
+
+    fetch("/deleteMateria/"+materiaSelezionata.id, {
+        method: "DELETE",
+    })
+    .then(response => response.json())
+    .then(data => {
+        getMaterie()
+        listaTask.innerHTML = ""  
+    })
+    .catch(error => console.error('Errore:', error));
+}
+
 //#endregion
 
 //#region funzioni
@@ -341,7 +366,7 @@ function clickTask(id, tipo){
     taskSelezionata = id
     if(tipo == 1){
         openModal("Riepilogo Task")
-    }else{
+    }else if(tipo == 2 && giornoCalendario.toDateString() === new Date().toDateString()){
         openModal("Pagine Completate")
     }
 }
@@ -353,7 +378,8 @@ function colonnaMaterie(materie){
         html += `
             <div class="card" data-id="${item.id}" data-colore="${item.colore}" onclick="clickMateria(this.dataset.id, this.dataset.colore)">
                 <div class="color-indicator" style="background-color: ${item.colore}"></div>
-                <p>${item.materia}</p>
+                <p>${item.materia.charAt(0).toUpperCase() + item.materia.slice(1)}</p>
+                <button class="delete-btn" onclick="openModal('Conferma eliminazione')">&times;</button>
             </div>
         `
     });
@@ -363,11 +389,17 @@ function colonnaMaterie(materie){
 function colonnaTask(task){
     let html = ``
     task.forEach(item => {
+        let pagineRimanenti = item.pagine - item.pagine_completate;
         html += `
             <div class="card" data-id="${item.id}" onclick="clickTask(${item.id},1)">
                 <div class="color-indicator" style="background-color: ${materiaSelezionata.colore}"></div>
-                <p>${item.titolo}</p>
-                <p>pagine: ${item.pagine_completate > 0 ? item.pagine-item.pagine_completate : item.pagine} - scadenza: ${item.data_fine}</p>
+                <div class="card-content">
+                    <p class="task-title">${item.titolo.charAt(0).toUpperCase() + item.titolo.slice(1)}</p>
+                    <div class="task-details">
+                        <span>Pagine: ${item.pagine_completate}/${item.pagine} (${pagineRimanenti} rim.)</span>
+                        <span class="task-date">Scadenza: ${item.data_fine.split('-').reverse().join('/')}</span>
+                    </div>
+                </div>
             </div>
         `
     });
@@ -430,11 +462,17 @@ function taskGiornaliere(){
         if (checkDay >= start && checkDay <= end && checkDay >= today && checkDay.getTime() != fineTask.getTime()){
             diff = Math.round((end - checkDay) / (1000 * 60 * 60 * 24))+1;
             let coloreTask = allMaterie.find(m => m.id === item.id_materia).colore;
+            let pagineOggi = pagineGiornaliere(item.pagine, diff, item.pagine_completate)[0];
             
             html +=`
                 <div class="card" onclick="clickTask(${item.id},2)">
                     <div class="color-indicator" style="background-color: ${coloreTask}"></div>
-                    <p>${item.titolo} - pagine da completare: ${pagineGiornaliere(item.pagine, diff, item.pagine_completate)[0]}</p>
+                    <div class="card-content">
+                        <p class="task-title">${item.titolo.charAt(0).toUpperCase() + item.titolo.slice(1)}</p>
+                        <div class="task-details">
+                            <span>${today.getTime() == checkDay.getTime() ? "Da completare oggi: ":"Pagine stimate: "} <strong>${pagineOggi} pagine</strong></span>
+                        </div>
+                    </div>
                 </div>
             ` 
         }
