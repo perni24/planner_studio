@@ -12,6 +12,7 @@ let taskSelezionata;
 let giornoCalendario = new Date();
 let allTask;
 let allMaterie;
+let alltaskScadute = [];
 //#endregion
 
 //#region Modal Logic
@@ -21,49 +22,54 @@ function openModal(title) {
     
     if (title.includes("Aggiungi Materia") && modalBody){
         modalBody.innerHTML = `
-            <label for="materia-nome">Nome Materia</label>
-            <input type="text" id="materia-nome" placeholder="es. Matematica" required autocomplete="off">
-            <label for="materia-colore">Colore Materia</label>
-            <input type="color" id="materia-colore" value="#007bff" required>
-            <button id="save-materia-btn">Salva Materia</button>
+            <form id="add-materia-form" style="display: flex; flex-direction: column; gap: 15px;">
+                <label for="materia-nome">Nome Materia</label>
+                <input type="text" id="materia-nome" placeholder="es. Matematica" required autocomplete="off">
+                <label for="materia-colore">Colore Materia</label>
+                <input type="color" id="materia-colore" value="#007bff" required>
+                <button type="submit" id="save-materia-btn">Salva Materia</button>
+            </form>
         `;
-
-        let saveBtn = document.getElementById('save-materia-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
+        
+        let form = document.getElementById('add-materia-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
                 insertMateria();
                 closeModal();
             });
         }
     } else if(title.includes("Aggiungi Task") && modalBody){
         modalBody.innerHTML = `
-            <label for="task-materia">Materia</label>
-            <select id="task-materia" required>
-                <option value="" disabled selected>Seleziona una materia</option>
-            </select>
+            <form id="add-task-form" style="display: flex; flex-direction: column; gap: 15px;">
+                <label for="task-materia">Materia</label>
+                <select id="task-materia" required>
+                    <option value="" disabled selected>Seleziona una materia</option>
+                </select>
 
-            <label for="task-nome">Titolo Task</label>
-            <input type="text" id="task-nome" placeholder="es. Verifica Funzioni" required autocomplete="off">
+                <label for="task-nome">Titolo Task</label>
+                <input type="text" id="task-nome" placeholder="es. Verifica Funzioni" required autocomplete="off">
 
-            <label for="task-desc">Descrizione</label>
-            <textarea id="task-desc" placeholder="Dettagli dello studio..."></textarea>
+                <label for="task-desc">Descrizione</label>
+                <textarea id="task-desc" placeholder="Dettagli dello studio..."></textarea>
 
-            <label for="task-pagine">Pagine</label>
-            <input type="number" id="task-pagine" placeholder="0">
+                <label for="task-pagine">Pagine</label>
+                <input type="number" id="task-pagine" placeholder="0" required>
 
 
-            <div class="input-group">
-                <div>
-                    <label for="task-inizio">Data Inizio</label>
-                    <input type="date" id="task-inizio">
+                <div class="input-group">
+                    <div>
+                        <label for="task-inizio">Data Inizio</label>
+                        <input type="date" id="task-inizio" required>
+                    </div>
+                    <div>
+                        <label for="task-fine">Data Fine</label>
+                        <input type="date" id="task-fine" required>
+                    </div>
                 </div>
-                <div>
-                    <label for="task-fine">Data Fine</label>
-                    <input type="date" id="task-fine" required>
-                </div>
-            </div>
 
-            <button id="save-task-btn">Salva Task</button>
+                <button type="submit" id="save-task-btn">Salva Task</button>
+            </form>
         `;
         
         const select = document.getElementById('task-materia');
@@ -78,9 +84,10 @@ function openModal(title) {
             select.value = materiaSelezionata.id;
         }
 
-        let saveBtn = document.getElementById('save-task-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
+        let form = document.getElementById('add-task-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
                 insertTask();
                 closeModal();
             });
@@ -89,7 +96,7 @@ function openModal(title) {
         let task = allTask.find(item => item.id == taskSelezionata)
         modalBody.innerHTML = `
             <label for="task-materia">Materia</label>
-            <select id="task-materia" required value=${task.id_materia}>
+            <select id="task-materia" required>
                 <option value="" disabled selected>Seleziona una materia</option>
             </select>
 
@@ -127,8 +134,11 @@ function openModal(title) {
             option.textContent = materia.materia;
             select.appendChild(option);
         })
-        if (materiaSelezionata && materiaSelezionata.id) {
+        if (materiaSelezionata && materiaSelezionata.id && !taskSelezionata) {
             select.value = materiaSelezionata.id;
+        }
+        if(taskSelezionata){
+            select.value = allTask.find(item => item.id == taskSelezionata).id_materia;
         }
 
         let updateBtn = document.getElementById('update-task-btn');
@@ -179,6 +189,17 @@ function openModal(title) {
                 closeModal();
             })
         }
+    }else if(title.includes("Errori task") && modalBody){
+        let html = ``
+        alltaskScadute.forEach(item => {
+                html += `
+                <div class="card" onclick="clickTask(${item.id},1)">
+                    <div class="color-indicator" style="background-color: ${allMaterie.find(val => val.id == item.id_materia).colore}"></div>
+                    <p>${item.titolo.charAt(0).toUpperCase() + item.titolo.slice(1)}</p>
+                </div>
+                `
+        })
+        modalBody.innerHTML = html
     }
 }
 
@@ -208,6 +229,7 @@ function getTask(){
         if(materiaSelezionata){
             colonnaTask(allTask.filter(item => item.id_materia == materiaSelezionata.id))
         }
+        taskScadute()
     })
     .catch(error => console.error('Errore:', error));
 }
@@ -232,7 +254,6 @@ function insertMateria() {
     .then(response => response.json())
     .then(data => {
         if (data.id_assegnato) {
-            console.log(data.id_assegnato)
             getMaterie()
         }
     })
@@ -391,7 +412,7 @@ function colonnaTask(task){
     task.forEach(item => {
         let pagineRimanenti = item.pagine - item.pagine_completate;
         html += `
-            <div class="card" data-id="${item.id}" onclick="clickTask(${item.id},1)">
+            <div class="card" onclick="clickTask(${item.id},1)">
                 <div class="color-indicator" style="background-color: ${materiaSelezionata.colore}"></div>
                 <div class="card-content">
                     <p class="task-title">${item.titolo.charAt(0).toUpperCase() + item.titolo.slice(1)}</p>
@@ -498,6 +519,18 @@ function pagineGiornaliere(pagine, giorni, pagine_completate){
     }
 
     return arrPagineGiorno
+}
+
+function taskScadute(){
+    alltaskScadute = []
+    let num = document.getElementById("num-task-scadute")
+    allTask.forEach(item => {
+        if(new Date().toISOString().split('T')[0] > new Date(item.data_fine).toISOString().split('T')[0]){
+            alltaskScadute.push(item)
+        }
+    })
+
+    num.innerHTML = alltaskScadute.length
 }
 
 //#endregion

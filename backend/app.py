@@ -122,6 +122,7 @@ def insertTask():
 def updatePagine(materiaId):
     nomeFile = 'task.json'
     pagineCompletate = request.get_json()
+    taskCompletata = 0
 
     try:
         with open(nomeFile, 'r', encoding='utf-8') as file:
@@ -131,10 +132,14 @@ def updatePagine(materiaId):
                 if t['id'] == materiaId:
                     t['pagine_completate'] += int(pagineCompletate.get('pagine_completate', 0))
                     t["fine_task_giornaliera"] = pagineCompletate.get('fine_task_giornaliera','')
-            
-            with open(nomeFile, 'w', encoding='utf-8') as file:
-                json.dump(task, file, indent=4, ensure_ascii=False)
-            
+                    if int(t['pagine_completate']) >= int(t['pagine']):
+                        taskCompletata = 1
+            if taskCompletata == 0:
+                with open(nomeFile, 'w', encoding='utf-8') as file:
+                    json.dump(task, file, indent=4, ensure_ascii=False)
+            else:
+                deleteTask(materiaId)
+
         return jsonify({"messaggio": "Pagine completate aggiornate con successo"}), 200
     except (FileNotFoundError, json.JSONDecodeError):
         return jsonify({"errore": "File non trovato"}), 500
