@@ -18,6 +18,7 @@ Planner Studio è un'applicazione semplice e intuitiva per la gestione dello stu
 ## ⚠️ Note Importanti
    * I dati sono salvati in file .json. Si consiglia di non modificarli manualmente per evitare errori.
    * Quando un task viene completato al 100%, viene rimosso dalla lista attiva.
+   * L'eseguibile non ha una firma digitale. Windows Defender e altri antivirus potrebbero segnalarlo come pericoloso o bloccarlo all'avvio. Si consiglia di aggiungere il file alle eccezioni dell'antivirus o cliccare su "Ulteriori informazioni" -> "Esegui comunque" se bloccato da Windows.
 
 ## 🛠️ Tecnologie Utilizzate
 
