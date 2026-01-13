@@ -13,6 +13,7 @@ let giornoCalendario = new Date();
 let allTask;
 let allMaterie;
 let alltaskScadute = [];
+let versione;
 //#endregion
 
 //#region Modal Logic
@@ -101,7 +102,7 @@ function openModal(title) {
             </select>
 
             <label for="task-nome">Titolo Task</label>
-            <input type="text" id="task-nome" placeholder="es. Verifica Funzioni" required autocomplete="off" value=${task.titolo}>
+            <input type="text" id="task-nome" placeholder="es. Verifica Funzioni" required autocomplete="off" value="${task.titolo}">
 
             <label for="task-desc">Descrizione</label>
             <textarea id="task-desc" placeholder="Dettagli dello studio...">${task.descrizione}</textarea>
@@ -200,6 +201,11 @@ function openModal(title) {
                 `
         })
         modalBody.innerHTML = html
+    }else if(title.includes("Nuova versione") && modalBody){
+        modalBody.innerHTML = `
+            <p>È disponibile una nuova versione di Planner Studio. Visita il repository GitHub per scaricarla.</p>
+            <a href="https://github.com/perni24/planner_studio/releases/tag/${versione}">Vai a GitHub</a>
+        `
     }
 }
 
@@ -209,6 +215,26 @@ function closeModal() {
 //#endregion
 
 //#region chiamate API
+
+function getVersion(){
+    fetch("/getVersion")
+    .then(response => response.json())
+    .then(data => {
+        versione = data.versione
+        if (data.nuova_versione){
+            openModal("Nuova versione")
+            if(document.getElementById("version-display")){
+                document.getElementById("version-display").textContent = versione;
+            }
+        }else{
+            if(document.getElementById("version-display")){
+                document.getElementById("version-display").textContent = versione;
+            }
+        }
+        
+    })
+    .catch(error => console.error('Errore:', error));
+}
 
 function getMaterie(){
     fetch("/getMaterie")
@@ -481,6 +507,7 @@ function taskGiornaliere(){
         let diff
 
         if (checkDay >= start && checkDay <= end && checkDay >= today && checkDay.getTime() != fineTask.getTime()){
+            
             diff = Math.round((end - checkDay) / (1000 * 60 * 60 * 24))+1;
             let coloreTask = allMaterie.find(m => m.id === item.id_materia).colore;
             let pagineOggi = pagineGiornaliere(item.pagine, diff, item.pagine_completate)[0];
@@ -574,5 +601,6 @@ document.addEventListener('DOMContentLoaded', () => {
     getMaterie()
     getTask()
     giorniCalendario(0)
+    getVersion()
 });
 //#endregion

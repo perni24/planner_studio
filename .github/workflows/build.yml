@@ -1,4 +1,4 @@
-name: Build Windows Exe with Nuitka
+name: Build Binaries
 
 on:
   workflow_dispatch:
@@ -8,7 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v4
@@ -16,20 +20,49 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.12' 
 
     - name: Install dependencies
+      shell: bash
       run: |
         python -m pip install --upgrade pip
-        if (Test-Path requirements.txt) { pip install -r requirements.txt }
-        pip install nuitka zstandard
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pyinstaller
 
-    - name: Build with Nuitka
+    - name: Update Version in app.py
+      if: startsWith(github.ref, 'refs/tags/v')
+      shell: bash
       run: |
-        python -m nuitka --onefile --standalone --assume-yes-for-downloads --include-data-dir=frontend=frontend --output-dir=dist --output-filename=PlannerStudio.exe backend/app.py
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "Updating version to $VERSION"
+        # Use Python for cross-platform regex replacement
+        python -c "import re; open('backend/app.py', 'w').write(re.sub(r'versione = \".*\"', f'versione = \"$VERSION\"', open('backend/app.py').read()))"
+
+    - name: Build with PyInstaller
+      run: pyinstaller PlannerStudio.spec
+
+    - name: Rename Output
+      id: rename_output
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          mv dist/PlannerStudio.exe dist/PlannerStudio-Windows.exe
+          echo "asset_path=dist/PlannerStudio-Windows.exe" >> $GITHUB_OUTPUT
+          echo "artifact_name=PlannerStudio-Windows" >> $GITHUB_OUTPUT
+        else
+          mv dist/PlannerStudio dist/PlannerStudio-Linux
+          echo "asset_path=dist/PlannerStudio-Linux" >> $GITHUB_OUTPUT
+          echo "artifact_name=PlannerStudio-Linux" >> $GITHUB_OUTPUT
+        fi
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: PlannerStudio-Windows
-        path: dist/PlannerStudio.exe
+        name: ${{ steps.rename_output.outputs.artifact_name }}
+        path: ${{ steps.rename_output.outputs.asset_path }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: ${{ steps.rename_output.outputs.asset_path }}

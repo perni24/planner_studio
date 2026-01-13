@@ -3,6 +3,9 @@ import json
 import sys
 import os
 import webbrowser
+import requests
+
+versione = "v1.0.0"
 
 # CREAZIONE DELL'APPLICAZIONE FLASK
 # __name__: dice a Flask dove cercare le risorse.
@@ -23,6 +26,28 @@ def index():
     # send_from_directory: funzione sicura per inviare file da una cartella specifica.
     # Restituisce 'index.html' dalla cartella 'frontend' configurata sopra.
     return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/getVersion', methods=['GET'])
+def getVersion():
+    versioneGit = getVersioneGit()
+    if versioneGit == versione:
+        return jsonify({"versione": versione, "nuova_versione": None})
+    else: 
+        return jsonify({"versione": versione, "nuova_versione": versioneGit})
+
+def getVersioneGit():
+    url = "https://api.github.com/repos/perni24/planner_studio/releases/latest"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        version = data['tag_name']
+        return version
+    elif response.status_code == 404:
+        return "Nessuna release trovata.", None
+    else:
+        return f"Errore: {response.status_code}", None
+
 
 @app.route('/getMaterie', methods=['GET'])
 def getMaterie():

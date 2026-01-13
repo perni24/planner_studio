@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['backend\\app.py'],
+    ['backend/app.py'],
     pathex=[],
     binaries=[],
     datas=[('frontend', 'frontend')],
