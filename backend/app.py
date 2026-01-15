@@ -4,8 +4,23 @@ import sys
 import os
 import webbrowser
 import requests
+import threading
+import time
 
 versione = "v1.0.0"
+
+# Variabile globale per memorizzare l'ultimo contatto dal frontend
+ultimo_battito = time.time()
+
+def monitoraggio_chiusura():
+    """Thread che controlla se il frontend è ancora attivo."""
+    global ultimo_battito
+    while True:
+        time.sleep(1)
+        # Se sono passati più di 5 secondi dall'ultimo battito, chiude l'app
+        if time.time() - ultimo_battito > 5:
+            print("Nessun segnale dal frontend. Chiusura server...")
+            os._exit(0)
 
 # CREAZIONE DELL'APPLICAZIONE FLASK
 # __name__: dice a Flask dove cercare le risorse.
@@ -259,10 +274,22 @@ def deleteAllTask(id_materia):
     except (FileNotFoundError, json.JSONDecodeError):
         return jsonify({"errore": "File non trovato"}), 500
 
+@app.route('/heartbeat', methods=['POST'])
+def heartbeat():
+    global ultimo_battito
+    ultimo_battito = time.time()
+    return jsonify({"status": "ok"}), 200
+
 # AVVIO DEL SERVER
 # if __name__ == '__main__': assicura che il server parta solo se eseguiamo questo file direttamente.
 if __name__ == '__main__':
     # debug=True: attiva il riavvio automatico se modifichi il codice e mostra errori dettagliati.
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         webbrowser.open_new('http://127.0.0.1:5000/')
+        
+        # Avvio del thread di monitoraggio per la chiusura automatica
+        t = threading.Thread(target=monitoraggio_chiusura)
+        t.daemon = True
+        t.start()
+        
     app.run(debug=True)

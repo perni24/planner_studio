@@ -602,5 +602,11 @@ document.addEventListener('DOMContentLoaded', () => {
     getTask()
     giorniCalendario(0)
     getVersion()
+
+    // Invia un segnale di heartbeat al server ogni secondo
+    setInterval(() => {
+        fetch("/heartbeat", { method: "POST" })
+        .catch(error => console.log("Server disconnesso"));
+    }, 1000);
 });
 //#endregion
