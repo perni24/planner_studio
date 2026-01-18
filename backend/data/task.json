@@ -1,0 +1,13 @@
+[
+    {
+        "id_materia": 1,
+        "titolo": "test",
+        "descrizione": "",
+        "data_inizio": "2026-01-16",
+        "data_fine": "2026-01-21",
+        "pagine": 50,
+        "id": 1,
+        "pagine_completate": 10,
+        "fine_task_giornaliera": "2026-01-16"
+    }
+]

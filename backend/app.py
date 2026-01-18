@@ -8,9 +8,15 @@ import threading
 import time
 
 versione = "v1.0.0"
+DATA_FOLDER = 'data'
 
 # Variabile globale per memorizzare l'ultimo contatto dal frontend
 ultimo_battito = time.time()
+
+def get_data_path(filename):
+    if not os.path.exists(DATA_FOLDER):
+        os.makedirs(DATA_FOLDER)
+    return os.path.join(DATA_FOLDER, filename)
 
 def monitoraggio_chiusura():
     """Thread che controlla se il frontend è ancora attivo."""
@@ -66,7 +72,7 @@ def getVersioneGit():
 
 @app.route('/getMaterie', methods=['GET'])
 def getMaterie():
-    nomeFile = 'materie.json'
+    nomeFile = get_data_path('materie.json')
     try:
         # 1. Apri il file in modalità lettura ('r')
         with open(nomeFile, 'r', encoding='utf-8') as file:
@@ -84,7 +90,7 @@ def getMaterie():
     
 @app.route('/getTask', methods=['GET'])
 def getTask():
-    nomeFile = 'task.json'
+    nomeFile = get_data_path('task.json')
     try:
         # 1. Apri il file in modalità lettura ('r')
         with open(nomeFile, 'r', encoding='utf-8') as file:
@@ -103,7 +109,7 @@ def getTask():
 @app.route('/insertMateria', methods=['POST'])
 def insertMateria():
     nuovaMateria = request.get_json()
-    nomeFile = 'materie.json'
+    nomeFile = get_data_path('materie.json')
 
     if not nuovaMateria: 
         return jsonify({"errore": "Dati non validi"}), 400
@@ -133,7 +139,7 @@ def insertMateria():
 @app.route('/insertTask', methods=['POST'])
 def insertTask():
     nuovaTask = request.get_json()
-    nomeFile = 'task.json'
+    nomeFile = get_data_path('task.json')
 
     try:
         with open(nomeFile, 'r', encoding='utf-8') as file:
@@ -160,7 +166,7 @@ def insertTask():
 
 @app.route('/updatePagine/<int:materiaId>', methods=['POST'])  
 def updatePagine(materiaId):
-    nomeFile = 'task.json'
+    nomeFile = get_data_path('task.json')
     pagineCompletate = request.get_json()
     taskCompletata = 0
 
@@ -187,7 +193,7 @@ def updatePagine(materiaId):
 @app.route('/updateTask/<int:materiaId>', methods=['PUT'])
 def updateTask(materiaId): 
 
-    nomeFile = 'task.json'
+    nomeFile = get_data_path('task.json')
     datiTask =  request.get_json()
 
     try:
@@ -212,7 +218,7 @@ def updateTask(materiaId):
 
 @app.route('/deleteMateria/<int:materiaId>', methods=['DELETE'])  
 def deleteMateria(materiaId):
-    nomeFile = 'materie.json'
+    nomeFile = get_data_path('materie.json')
 
     try:
         with open(nomeFile, 'r', encoding='utf-8') as file:
@@ -237,7 +243,7 @@ def deleteMateria(materiaId):
 
 @app.route('/deleteTask/<int:materiaId>', methods=['DELETE'])
 def deleteTask(materiaId):
-    nomeFile = 'task.json'
+    nomeFile = get_data_path('task.json')
     try:
         with open(nomeFile, 'r', encoding='utf-8') as file:
             task= json.load(file)
@@ -256,7 +262,7 @@ def deleteTask(materiaId):
         return jsonify({"errore": "File non trovato"}), 500
 
 def deleteAllTask(id_materia):
-    nomeFile = 'task.json'
+    nomeFile = get_data_path('task.json')
     try:
         with open(nomeFile, 'r', encoding='utf-8') as file:
             task= json.load(file)
@@ -283,8 +289,8 @@ def heartbeat():
 # AVVIO DEL SERVER
 # if __name__ == '__main__': assicura che il server parta solo se eseguiamo questo file direttamente.
 if __name__ == '__main__':
-    # debug=True: attiva il riavvio automatico se modifichi il codice e mostra errori dettagliati.
-    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+    # Se siamo nell'eseguibile (frozen)
+    if getattr(sys, 'frozen', False):
         webbrowser.open_new('http://127.0.0.1:5000/')
         
         # Avvio del thread di monitoraggio per la chiusura automatica
@@ -292,4 +298,21 @@ if __name__ == '__main__':
         t.daemon = True
         t.start()
         
-    app.run(debug=True)
+        # In produzione disattiviamo il debug e il reloader
+        app.run(debug=False)
+        
+    else:
+        # Siamo in sviluppo (Python normale)
+        # Gestione del reloader di Flask (debug=True crea due processi)
+        
+        # Questo blocco viene eseguito solo dal processo PADRE del reloader
+        if not os.environ.get("WERKZEUG_RUN_MAIN"):
+            webbrowser.open_new('http://127.0.0.1:5000/')
+        
+        # Questo blocco viene eseguito solo dal processo FIGLIO (che gestisce le richieste)
+        if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+            t = threading.Thread(target=monitoraggio_chiusura)
+            t.daemon = True
+            t.start()
+            
+        app.run(debug=True)
