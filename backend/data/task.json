@@ -1,13 +1,57 @@
 [
     {
-        "id_materia": 1,
+        "id_materia": 2,
+        "titolo": "test",
+        "descrizione": "test",
+        "data_inizio": "2025-12-29",
+        "data_fine": "2026-01-05",
+        "pagine": 100,
+        "id": 2,
+        "pagine_completate": 5,
+        "fine_task_giornaliera": ""
+    },
+    {
+        "id_materia": 3,
+        "titolo": "filosofi",
+        "descrizione": "",
+        "data_inizio": "2026-01-04",
+        "data_fine": "2026-01-09",
+        "pagine": 50,
+        "id": 5,
+        "pagine_completate": 8,
+        "fine_task_giornaliera": "2026-01-04"
+    },
+    {
+        "id_materia": 3,
+        "titolo": "Socrate e sofisti",
+        "descrizione": "",
+        "data_inizio": "2026-01-07",
+        "data_fine": "2026-01-12",
+        "pagine": 20,
+        "id": 6,
+        "pagine_completate": 0,
+        "fine_task_giornaliera": ""
+    },
+    {
+        "id_materia": 4,
         "titolo": "test",
         "descrizione": "",
-        "data_inizio": "2026-01-16",
-        "data_fine": "2026-01-21",
-        "pagine": 50,
-        "id": 1,
+        "data_inizio": "2026-01-05",
+        "data_fine": "2026-01-07",
+        "pagine": 60,
+        "id": 7,
+        "pagine_completate": 0,
+        "fine_task_giornaliera": ""
+    },
+    {
+        "id_materia": 1,
+        "titolo": "test numero 2",
+        "descrizione": "",
+        "data_inizio": "2026-01-17",
+        "data_fine": "2026-02-01",
+        "pagine": 47,
+        "id": 8,
         "pagine_completate": 10,
-        "fine_task_giornaliera": "2026-01-16"
+        "fine_task_giornaliera": "2026-01-18"
     }
 ]

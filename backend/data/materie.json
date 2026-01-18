@@ -1,7 +1,22 @@
 [
     {
-        "materia": "Matematica",
-        "colore": "#007bff",
-        "id": 1
+        "id": 1,
+        "materia": "matematica",
+        "colore": "#007bff"
+    },
+    {
+        "materia": "Italiano",
+        "colore": "#ff0000",
+        "id": 2
+    },
+    {
+        "materia": "filosofia",
+        "colore": "#ff00a2",
+        "id": 3
+    },
+    {
+        "materia": "Storia",
+        "colore": "#bbff00",
+        "id": 4
     }
 ]

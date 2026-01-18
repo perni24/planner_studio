@@ -533,17 +533,7 @@ function taskGiornaliere(){
 function pagineGiornaliere(pagine, giorni, pagine_completate){
     let arrPagineGiorno = []
     pagine = pagine - pagine_completate
-    if(pagine % giorni == 0){
-        for(let i = 0; i < giorni; i++){
-            arrPagineGiorno.push(pagine/giorni)
-        }
-    }else{
-       let resto = Math.round(pagine % giorni)
-       pagine = pagine - resto
-       for(let i = 0; i < giorni; i++){
-            arrPagineGiorno.push(i == 0 ? (pagine/giorni)+resto : pagine/giorni)
-        }    
-    }
+    arrPagineGiorno.push(Math.ceil(pagine/giorni))
 
     return arrPagineGiorno
 }
