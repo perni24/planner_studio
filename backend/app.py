@@ -7,7 +7,7 @@ import requests
 import threading
 import time
 
-versione = "v1.0.0"
+versione = "v1.1.0"
 DATA_FOLDER = 'data'
 
 # Variabile globale per memorizzare l'ultimo contatto dal frontend
